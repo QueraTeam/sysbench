@@ -75,7 +75,13 @@ case "$job" in
     fi
     ;;
   forget)
-    docker run --rm $(get_string_envs) restic/restic forget "$@"
+    if [[ $1 == "--all" ]]; then
+      docker run --rm $(get_string_envs) restic/restic snapshots | \
+        cut -d' ' -f1 | head -n -2 | tail -n +4 | sed -r '/^\s*$/d' | \
+        xargs docker run --rm $(get_string_envs) restic/restic forget -
+    else
+      docker run --rm $(get_string_envs) restic/restic forget "$@"
+    fi
     ;;
   stop)
     rm -f $BUPER_PATH
